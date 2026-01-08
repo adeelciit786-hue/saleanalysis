@@ -249,7 +249,11 @@ def admin_panel():
                 # Create forecaster and visualizer
                 forecaster = SalesForecaster(st.session_state.historical_data)
                 weekday_averages = forecaster.get_weekday_averages()
-                forecast_data = forecaster.forecast_month('JANUARY', st.session_state.target_sales)
+                
+                # forecast_month returns a list, wrap it in dict with 'forecast' key
+                forecast_list = forecaster.forecast_month('JANUARY', st.session_state.target_sales)
+                forecast_data = {'forecast': forecast_list}
+                
                 viz = SalesVisualizer()
                 
                 # KPIs
@@ -323,9 +327,11 @@ def admin_panel():
                 if st.session_state.current_month_data and len(st.session_state.current_month_data) > 0:
                     st.markdown("### Actual vs Projected Sales")
                     try:
+                        # Extract the first data dict from the list
+                        current_month = st.session_state.current_month_data[0]
                         chart5 = viz.create_actual_vs_projected_chart(
                             forecast_data,
-                            st.session_state.current_month_data
+                            current_month
                         )
                         st.plotly_chart(chart5, use_container_width=True)
                     except Exception as e:
