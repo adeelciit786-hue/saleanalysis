@@ -106,6 +106,7 @@ C002,Sarah Johnson,sarah.j@email.com,2023-02-20T00:00:00
 ```
 saleanalysis/
 ├── main.py                 # CLI entry point
+├── example.py             # Example usage script
 ├── sales_data.py          # Data models and structures
 ├── sales_analyzer.py      # Core analysis logic
 ├── data_loader.py         # Data loading utilities
@@ -118,6 +119,35 @@ saleanalysis/
 ├── requirements.txt       # Python dependencies
 └── README.md             # This file
 ```
+
+## Programmatic Usage
+
+You can also use the sales analysis API directly in your Python code:
+
+```python
+from datetime import datetime
+from sales_data import SalesData, Product, Transaction, Customer
+from sales_analyzer import SalesAnalyzer
+
+# Create sales data
+sales_data = SalesData()
+
+# Add products
+sales_data.add_product(Product("P001", "Laptop", "Electronics", 1299.99))
+
+# Add customers
+sales_data.add_customer(Customer("C001", "John Doe", "john@email.com", datetime.now()))
+
+# Add transactions
+sales_data.add_transaction(Transaction("T001", "P001", "C001", 1, datetime.now(), 1299.99))
+
+# Analyze
+analyzer = SalesAnalyzer(sales_data)
+total_revenue = analyzer.calculate_total_sales()
+print(f"Total Revenue: ${total_revenue:,.2f}")
+```
+
+See `example.py` for a complete working example.
 
 ## Running Tests
 
