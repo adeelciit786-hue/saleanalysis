@@ -9,20 +9,24 @@ from datetime import datetime, timedelta
 import sys
 import os
 from pathlib import Path
-from werkzeug.security import check_password_hash, generate_password_hash
+import traceback
 
 # Add parent directory to path to import modules
 sys.path.insert(0, str(Path(__file__).parent.parent / 'sales_app'))
 
-from excel_loader import ExcelLoader
-from forecast import SalesForecaster
-from visualizer import SalesVisualizer
-from utils import to_float
+try:
+    from excel_loader import ExcelLoader
+    from forecast import SalesForecaster
+    from visualizer import SalesVisualizer
+    from utils import to_float
+except ImportError as e:
+    st.error(f"Import Error: {str(e)}")
+    st.stop()
 
 # Page configuration
 st.set_page_config(
     page_title="Admin Dashboard - Champion Cleaners",
-    page_icon="🔐",
+    page_icon="🔐", 
     layout="wide",
     initial_sidebar_state="expanded"
 )
@@ -57,7 +61,7 @@ if 'username' not in st.session_state:
 if 'login_time' not in st.session_state:
     st.session_state.login_time = None
 if 'historical_data' not in st.session_state:
-    st.session_state.historical_data = []
+    st.session_state.historical_data = None
 if 'current_month_data' not in st.session_state:
     st.session_state.current_month_data = None
 if 'target_sales' not in st.session_state:
@@ -155,12 +159,15 @@ def admin_panel():
                             loader = ExcelLoader(temp_path)
                             if loader.load():
                                 st.session_state.historical_data = loader.get_combined_data()
-                                st.success(f"✅ Loaded {file.name} ({len(loader.dates)} records)")
+                                st.success(f"✅ Loaded {file.name}")
                             else:
                                 st.error(f"❌ Failed to load {file.name}")
                             
                             # Clean up
-                            os.remove(temp_path)
+                            try:
+                                os.remove(temp_path)
+                            except:
+                                pass
                         except Exception as e:
                             st.error(f"Error: {str(e)}")
         
@@ -182,11 +189,14 @@ def admin_panel():
                         loader = ExcelLoader(temp_path)
                         if loader.load():
                             st.session_state.current_month_data = loader.get_combined_data()
-                            st.success(f"✅ Loaded {current_file.name} ({len(loader.dates)} days)")
+                            st.success(f"✅ Loaded {current_file.name}")
                         else:
                             st.error(f"❌ Failed to load {current_file.name}")
                         
-                        os.remove(temp_path)
+                        try:
+                            os.remove(temp_path)
+                        except:
+                            pass
                     except Exception as e:
                         st.error(f"Error: {str(e)}")
         
@@ -207,23 +217,16 @@ def admin_panel():
     
     # TAB 2: Dashboard
     with tab2:
-        if not st.session_state.historical_data:
-            st.warning("⚠️ Please upload historical data first")
+        if st.session_state.historical_data is None or len(st.session_state.historical_data) == 0:
+            st.warning("⚠️ Please upload historical data first in the Upload Data tab")
         else:
             st.markdown("## Forecasting Dashboard")
             
             try:
-                # Create forecaster
+                # Create forecaster and visualizer
                 forecaster = SalesForecaster(st.session_state.historical_data)
                 weekday_averages = forecaster.get_weekday_averages()
-                
-                # Generate forecast
-                forecast_data = forecaster.forecast_month(
-                    'JANUARY',
-                    st.session_state.target_sales
-                )
-                
-                # Create visualizer
+                forecast_data = forecaster.forecast_month('JANUARY', st.session_state.target_sales)
                 viz = SalesVisualizer()
                 
                 # KPIs
@@ -233,7 +236,6 @@ def admin_panel():
                 today_sales = to_float(forecast_data.get('today_sales', 0), 0)
                 total_projected = to_float(forecast_data.get('total_projected', 0), 0)
                 gap = to_float(forecast_data.get('projected_vs_target', 0), 0) if st.session_state.target_sales else 0
-                gap_percent = to_float(forecast_data.get('target_gap_percent', 0), 0) if st.session_state.target_sales else 0
                 
                 with col1:
                     st.metric("Today", today.strftime("%d %b"))
@@ -243,13 +245,13 @@ def admin_panel():
                     st.metric("Monthly Projection", f"AED {total_projected:,.0f}")
                 with col4:
                     if st.session_state.target_sales:
-                        st.metric("Monthly Target", f"AED {st.session_state.target_sales:,.0f}")
+                        st.metric("Target", f"AED {st.session_state.target_sales:,.0f}")
                     else:
                         st.metric("Target", "Not Set")
                 with col5:
                     if st.session_state.target_sales:
                         color = "🟢" if gap >= 0 else "🔴"
-                        st.metric("Gap", f"{color} AED {gap:,.0f}", f"{gap_percent:.1f}%")
+                        st.metric("Gap", f"{color} {gap:,.0f}")
                     else:
                         st.metric("Gap", "-")
                 
@@ -260,40 +262,55 @@ def admin_panel():
                 
                 with col1:
                     st.markdown("### Historical Sales Trend")
-                    chart1 = viz.create_historical_sales_chart(st.session_state.historical_data)
-                    st.plotly_chart(chart1, use_container_width=True)
+                    try:
+                        chart1 = viz.create_historical_sales_chart(st.session_state.historical_data)
+                        st.plotly_chart(chart1, use_container_width=True)
+                    except Exception as e:
+                        st.warning(f"Could not display chart: {str(e)}")
                 
                 with col2:
                     st.markdown("### Weekday Performance")
-                    chart2 = viz.create_weekday_chart(weekday_averages)
-                    st.plotly_chart(chart2, use_container_width=True)
+                    try:
+                        chart2 = viz.create_weekday_chart(weekday_averages)
+                        st.plotly_chart(chart2, use_container_width=True)
+                    except Exception as e:
+                        st.warning(f"Could not display chart: {str(e)}")
                 
                 col1, col2 = st.columns(2)
                 
                 with col1:
                     st.markdown("### Monthly Forecast")
-                    chart3 = viz.create_forecast_chart(forecast_data)
-                    st.plotly_chart(chart3, use_container_width=True)
+                    try:
+                        chart3 = viz.create_forecast_chart(forecast_data)
+                        st.plotly_chart(chart3, use_container_width=True)
+                    except Exception as e:
+                        st.warning(f"Could not display chart: {str(e)}")
                 
                 with col2:
                     if st.session_state.target_sales:
                         st.markdown("### Target vs Projection")
-                        chart4 = viz.create_target_chart(forecast_data)
-                        st.plotly_chart(chart4, use_container_width=True)
+                        try:
+                            chart4 = viz.create_target_chart(forecast_data)
+                            st.plotly_chart(chart4, use_container_width=True)
+                        except Exception as e:
+                            st.warning(f"Could not display chart: {str(e)}")
                     else:
-                        st.info("ℹ️ Set a target in Step 3 to see comparison")
+                        st.info("ℹ️ Set a target to see comparison")
                 
-                # Actual vs Projected
-                if st.session_state.current_month_data:
+                if st.session_state.current_month_data and len(st.session_state.current_month_data) > 0:
                     st.markdown("### Actual vs Projected Sales")
-                    chart5 = viz.create_actual_vs_projected_chart(
-                        forecast_data,
-                        st.session_state.current_month_data
-                    )
-                    st.plotly_chart(chart5, use_container_width=True)
+                    try:
+                        chart5 = viz.create_actual_vs_projected_chart(
+                            forecast_data,
+                            st.session_state.current_month_data
+                        )
+                        st.plotly_chart(chart5, use_container_width=True)
+                    except Exception as e:
+                        st.warning(f"Could not display chart: {str(e)}")
             
             except Exception as e:
-                st.error(f"Error generating dashboard: {str(e)}")
+                st.error(f"Dashboard Error: {str(e)}")
+                st.info("Make sure your Excel files have 'Date' and 'Sales' columns")
     
     # TAB 3: Settings
     with tab3:
@@ -320,8 +337,8 @@ def admin_panel():
         
         with col2:
             st.markdown("### Actions")
-            if st.button("🔄 Clear All Data"):
-                st.session_state.historical_data = []
+            if st.button("🔄 Clear All Data", use_container_width=True):
+                st.session_state.historical_data = None
                 st.session_state.current_month_data = None
                 st.session_state.target_sales = None
                 st.success("✓ All data cleared")

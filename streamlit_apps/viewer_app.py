@@ -8,14 +8,19 @@ import pandas as pd
 from datetime import datetime
 import sys
 from pathlib import Path
+import traceback
 
 # Add parent directory to path to import modules
 sys.path.insert(0, str(Path(__file__).parent.parent / 'sales_app'))
 
-from excel_loader import ExcelLoader
-from forecast import SalesForecaster
-from visualizer import SalesVisualizer
-from utils import to_float
+try:
+    from excel_loader import ExcelLoader
+    from forecast import SalesForecaster
+    from visualizer import SalesVisualizer
+    from utils import to_float
+except ImportError as e:
+    st.error(f"Import Error: {str(e)}")
+    st.stop()
 
 # Page configuration
 st.set_page_config(
@@ -156,30 +161,42 @@ else:
         
         with col1:
             st.markdown("### 📈 Daily Sales Trend")
-            st.markdown("Historical sales data across all branches showing daily patterns and trends.")
-            chart1 = viz.create_historical_sales_chart(data['historical'])
-            st.plotly_chart(chart1, use_container_width=True)
+            st.markdown("Historical sales data showing daily patterns and trends.")
+            try:
+                chart1 = viz.create_historical_sales_chart(data['historical'])
+                st.plotly_chart(chart1, use_container_width=True)
+            except Exception as e:
+                st.warning(f"Could not display chart: {str(e)}")
         
         with col2:
             st.markdown("### 📊 Weekday Performance")
-            st.markdown("Average sales comparison across days of the week to identify patterns.")
-            chart2 = viz.create_weekday_chart(weekday_averages)
-            st.plotly_chart(chart2, use_container_width=True)
+            st.markdown("Average sales comparison across days of the week.")
+            try:
+                chart2 = viz.create_weekday_chart(weekday_averages)
+                st.plotly_chart(chart2, use_container_width=True)
+            except Exception as e:
+                st.warning(f"Could not display chart: {str(e)}")
         
         col1, col2 = st.columns(2)
         
         with col1:
             st.markdown("### 🔮 Monthly Forecast")
-            st.markdown("Projected sales for the current month based on historical weekday patterns.")
-            chart3 = viz.create_forecast_chart(forecast_data)
-            st.plotly_chart(chart3, use_container_width=True)
+            st.markdown("Projected sales for the current month based on historical patterns.")
+            try:
+                chart3 = viz.create_forecast_chart(forecast_data)
+                st.plotly_chart(chart3, use_container_width=True)
+            except Exception as e:
+                st.warning(f"Could not display chart: {str(e)}")
         
         with col2:
             if data.get('target'):
                 st.markdown("### 🎯 Target vs Projection")
                 st.markdown("Comparison of forecasted sales against monthly targets.")
-                chart4 = viz.create_target_chart(forecast_data)
-                st.plotly_chart(chart4, use_container_width=True)
+                try:
+                    chart4 = viz.create_target_chart(forecast_data)
+                    st.plotly_chart(chart4, use_container_width=True)
+                except Exception as e:
+                    st.warning(f"Could not display chart: {str(e)}")
             else:
                 st.markdown("### 🎯 Target vs Projection")
                 st.info("✓ Target comparison will appear once target is set in admin panel")
@@ -187,9 +204,12 @@ else:
         # Actual vs Projected
         if data.get('current'):
             st.markdown("### 🟢 Actual vs Projected Sales")
-            st.markdown("Daily comparison of actual uploaded sales against projections (Green = Actual, Red = Projected)")
-            chart5 = viz.create_actual_vs_projected_chart(forecast_data, data['current'])
-            st.plotly_chart(chart5, use_container_width=True)
+            st.markdown("Daily comparison of actual uploaded sales against projections")
+            try:
+                chart5 = viz.create_actual_vs_projected_chart(forecast_data, data['current'])
+                st.plotly_chart(chart5, use_container_width=True)
+            except Exception as e:
+                st.warning(f"Could not display chart: {str(e)}")
         
         st.divider()
         
