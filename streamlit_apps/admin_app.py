@@ -160,7 +160,15 @@ def admin_panel():
                             # Load and parse
                             loader = ExcelLoader(temp_path)
                             if loader.load():
-                                st.session_state.historical_data = loader.get_combined_data()
+                                # Build data dict from loader
+                                data_dict = {
+                                    'month': loader.month_name,
+                                    'dates': loader.dates,
+                                    'weekdays': loader.weekdays,
+                                    'totals': loader.daily_totals,
+                                    'branches': loader.branches
+                                }
+                                st.session_state.historical_data = [data_dict]
                                 st.success(f"✅ Loaded {file.name}")
                             else:
                                 st.error(f"❌ Failed to load {file.name}")
@@ -190,7 +198,15 @@ def admin_panel():
                         
                         loader = ExcelLoader(temp_path)
                         if loader.load():
-                            st.session_state.current_month_data = loader.get_combined_data()
+                            # Build data dict from loader
+                            data_dict = {
+                                'month': loader.month_name,
+                                'dates': loader.dates,
+                                'weekdays': loader.weekdays,
+                                'totals': loader.daily_totals,
+                                'branches': loader.branches
+                            }
+                            st.session_state.current_month_data = [data_dict]
                             st.success(f"✅ Loaded {current_file.name}")
                         else:
                             st.error(f"❌ Failed to load {current_file.name}")
