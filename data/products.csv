@@ -1,0 +1,16 @@
+product_id,name,category,price
+P001,Laptop Pro 15,Electronics,1299.99
+P002,Wireless Mouse,Electronics,29.99
+P003,USB-C Cable,Electronics,19.99
+P004,Office Chair,Furniture,249.99
+P005,Standing Desk,Furniture,499.99
+P006,Coffee Maker,Appliances,89.99
+P007,Blender,Appliances,59.99
+P008,Smartphone X,Electronics,899.99
+P009,Tablet 10,Electronics,449.99
+P010,Bookshelf,Furniture,129.99
+P011,Desk Lamp,Furniture,39.99
+P012,Microwave,Appliances,149.99
+P013,Headphones Pro,Electronics,199.99
+P014,Keyboard Mechanical,Electronics,119.99
+P015,Monitor 27,Electronics,349.99

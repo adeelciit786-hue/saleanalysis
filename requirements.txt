@@ -1,0 +1,15 @@
+# Sales Analysis Application - Python Dependencies
+
+# No external dependencies required for core functionality
+# The application uses only Python standard library modules:
+# - dataclasses
+# - datetime
+# - typing
+# - collections
+# - csv
+# - json
+# - argparse
+# - pathlib
+
+# Optional: For running tests
+pytest>=7.0.0
