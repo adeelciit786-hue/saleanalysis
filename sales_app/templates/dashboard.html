@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Forecasting Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">📊 Champion Cleaners Sales Forecasting Dashboard</h1>
+                <p class="tagline">Enterprise Sales Analysis & Projections</p>
+            </div>
+            <div class="header-actions">
+                <a href="/" class="btn btn-small btn-secondary">← Back to Upload</a>
+            </div>
+        </header>
+
+        <main class="main-content">
+            {% if has_data %}
+                <!-- KPI Cards Section -->
+                <section class="kpi-section">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Today's Date</div>
+                            <div class="kpi-value">{{ kpis.today_date }}</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Projected Today</div>
+                            <div class="kpi-value kpi-primary">{{ kpis.today_sales }}</div>
+                            <div class="kpi-unit">AED</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Monthly Projection</div>
+                            <div class="kpi-value kpi-primary">{{ kpis.projected_total }}</div>
+                            <div class="kpi-unit">AED</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Monthly Target</div>
+                            <div class="kpi-value">{{ kpis.target }}</div>
+                            <div class="kpi-unit">{% if kpis.target != 'No Target Set' %}AED{% endif %}</div>
+                        </div>
+                        <div class="kpi-card {% if kpis.gap != '-' and kpis.gap.split()[0]|int < 0 %}kpi-warning{% endif %}">
+                            <div class="kpi-label">Target Gap</div>
+                            <div class="kpi-value">{{ kpis.gap }}</div>
+                            <div class="kpi-unit">{{ kpis.gap_percent }}</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="charts-section">
+                    <!-- Historical Sales Chart -->
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            {{ chart1|safe }}
+                        </div>
+                    </div>
+
+                    <!-- Weekday Performance Chart -->
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            {{ chart2|safe }}
+                        </div>
+                    </div>
+
+                    <!-- Forecast Chart -->
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            {{ chart3|safe }}
+                        </div>
+                    </div>
+
+                    <!-- Target vs Projection Chart -->
+                    {% if chart4 %}
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            {{ chart4|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Actual vs Projected Chart -->
+                    {% if chart5 %}
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            {{ chart5|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </section>
+
+                <!-- Data Summary -->
+                <section class="summary-section">
+                    <div class="card summary-card">
+                        <h3>Analysis Summary</h3>
+                        <div class="summary-content">
+                            <p>This dashboard presents a comprehensive sales forecast for <strong>{{ current_month }}</strong> based on historical weekday patterns from your uploaded data.</p>
+                            <ul class="summary-list">
+                                <li><strong>Forecasting Method:</strong> Weekday-based averaging from historical months</li>
+                                <li><strong>Data Source:</strong> Excel-formatted branch sales data</li>
+                                <li><strong>Time Period:</strong> Full calendar month projection</li>
+                                <li><strong>Accuracy:</strong> Based on consistent weekday patterns in historical data</li>
+                                <li><strong>Updates:</strong> Refresh page to see latest projections</li>
+                            </ul>
+                        </div>
+                    </div>
+                </section>
+
+            {% else %}
+                <!-- Error State -->
+                <section class="error-section">
+                    <div class="card error-card">
+                        <div class="error-icon">⚠️</div>
+                        <h2>No Data Available</h2>
+                        <p>{{ error }}</p>
+                        <a href="/" class="btn btn-primary">← Return to Upload</a>
+                    </div>
+                </section>
+            {% endif %}
+        </main>
+
+        <footer class="footer">
+            <p>&copy; 2026 Enterprise Sales Forecasting Dashboard | Professional Analysis Tools | Crafted with Care</p>
+        </footer>
+    </div>
+</body>
+</html>

@@ -1,0 +1,62 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Project specific
+data/
+*.xlsx
+*.xls
+uploads/
+.env
+config_local.py
+
+# Streamlit
+.streamlit/
+streamlit_cache/
+
+# Flask
+instance/
+.webassets-cache
+flask_session/
+
+# Logs
+*.log
+
+# Testing
+.pytest_cache/
+.coverage
+
+# macOS
+.DS_Store
+Thumbs.db

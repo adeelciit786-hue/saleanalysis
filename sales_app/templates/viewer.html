@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Champion Cleaners - Sales Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">📊 Champion Cleaners Sales Dashboard</h1>
+                <p class="tagline">Real-time Sales Analysis & Performance Monitoring</p>
+            </div>
+            <div class="header-actions">
+                <span class="viewer-badge">Management View</span>
+            </div>
+        </header>
+
+        <main class="main-content">
+            {% if has_data %}
+                <!-- KPI Cards Section -->
+                <section class="kpi-section">
+                    <div class="kpi-grid">
+                        <div class="kpi-card">
+                            <div class="kpi-label">Today's Date</div>
+                            <div class="kpi-value">{{ kpis.today_date }}</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Projected Today</div>
+                            <div class="kpi-value kpi-primary">{{ kpis.today_sales }}</div>
+                            <div class="kpi-unit">AED</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Monthly Projection</div>
+                            <div class="kpi-value kpi-primary">{{ kpis.projected_total }}</div>
+                            <div class="kpi-unit">AED</div>
+                        </div>
+                        <div class="kpi-card">
+                            <div class="kpi-label">Monthly Target</div>
+                            <div class="kpi-value">{{ kpis.target }}</div>
+                            <div class="kpi-unit">{% if kpis.target != 'No Target Set' %}AED{% endif %}</div>
+                        </div>
+                        <div class="kpi-card {% if kpis.gap != '-' and kpis.gap.split()[0]|int < 0 %}kpi-warning{% endif %}">
+                            <div class="kpi-label">Target Gap</div>
+                            <div class="kpi-value">{{ kpis.gap }}</div>
+                            <div class="kpi-unit">{{ kpis.gap_percent }}</div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Charts Section -->
+                <section class="charts-section">
+                    <!-- Historical Sales Chart -->
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            {{ chart1|safe }}
+                        </div>
+                    </div>
+
+                    <!-- Weekday Performance Chart -->
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            {{ chart2|safe }}
+                        </div>
+                    </div>
+
+                    <!-- Forecast Chart -->
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            {{ chart3|safe }}
+                        </div>
+                    </div>
+
+                    <!-- Target vs Projection Chart -->
+                    {% if chart4 %}
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            {{ chart4|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Actual vs Projected Chart -->
+                    {% if chart5 %}
+                    <div class="chart-container">
+                        <div class="chart-wrapper">
+                            {{ chart5|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </section>
+
+                <!-- Data Summary -->
+                <section class="summary-section">
+                    <div class="card summary-card">
+                        <h3>Analysis Summary</h3>
+                        <div class="summary-content">
+                            <p><strong>Historical Data Loaded:</strong> {{ data_summary.historical_months }} months</p>
+                            <p><strong>Date Range:</strong> {{ data_summary.date_range }}</p>
+                            <p><strong>Branches Tracked:</strong> {{ data_summary.branches }}</p>
+                            <p><strong>Current Month Data:</strong> {{ data_summary.current_month_status }}</p>
+                            <p><strong>Forecast Accuracy Method:</strong> Weekday-based average sales analysis</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Auto-Refresh Notice -->
+                <section class="footer-section">
+                    <p class="footer-text">💡 This dashboard displays live data from the administration system. Data updates automatically when new sales information is uploaded.</p>
+                </section>
+            {% else %}
+                <!-- No Data State -->
+                <section class="empty-state">
+                    <div class="empty-state-content">
+                        <div class="empty-icon">📊</div>
+                        <h2>No Data Available Yet</h2>
+                        <p>The sales dashboard is waiting for data uploads from the administration backend.</p>
+                        <p class="empty-hint">Once historical and current month sales data are uploaded, this dashboard will display:</p>
+                        <ul class="feature-list">
+                            <li>✓ Historical sales trends and patterns</li>
+                            <li>✓ Weekday performance analysis</li>
+                            <li>✓ Sales forecasts for the current month</li>
+                            <li>✓ Target vs projection comparison</li>
+                            <li>✓ Actual vs projected daily sales</li>
+                            <li>✓ Real-time KPI metrics</li>
+                        </ul>
+                    </div>
+                </section>
+            {% endif %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>&copy; 2026 Champion Cleaners. All rights reserved.</p>
+        </footer>
+    </div>
+
+    <style>
+        .viewer-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-left: auto;
+        }
+
+        .empty-state {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 400px;
+            margin: 2rem 0;
+        }
+
+        .empty-state-content {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 500px;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-content h2 {
+            color: #333;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-content p {
+            color: #666;
+            margin-bottom: 1rem;
+        }
+
+        .empty-hint {
+            font-size: 0.9rem;
+            color: #888;
+            margin: 1.5rem 0 1rem 0;
+        }
+
+        .feature-list {
+            list-style: none;
+            padding: 1rem 0;
+            text-align: left;
+            display: inline-block;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        .footer-section {
+            background: #f0f4f8;
+            padding: 2rem;
+            text-align: center;
+            border-radius: 8px;
+            margin: 2rem 0;
+        }
+
+        .footer-text {
+            color: #666;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+            font-size: 0.85rem;
+            border-top: 1px solid #eee;
+            margin-top: 3rem;
+        }
+    </style>
+</body>
+</html>

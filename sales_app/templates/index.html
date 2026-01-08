@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sales Forecasting Dashboard - Upload</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="logo">📊 Champion Cleaners Sales Forecasting</h1>
+                <p class="tagline">Professional Sales Analysis & Projection Dashboard</p>
+            </div>
+            <div class="header-actions">
+                <span class="admin-badge">Administration Panel</span>
+                <div class="user-info">
+                    👤 <strong>{{ username }}</strong>
+                    <a href="{{ url_for('logout') }}" class="logout-btn">🚪 Logout</a>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <section class="upload-section">
+                <div class="card upload-card">
+                    <h2>Getting Started</h2>
+                    
+                    <div class="instructions">
+                        <h3>Step 1: Upload Historical Data</h3>
+                        <p>Upload Excel files for November and December (or any 2+ months of historical data)</p>
+                        
+                        <div class="upload-area" id="historicalUploadArea">
+                            <input type="file" id="historicalFileInput" accept=".xlsx,.xls" multiple hidden>
+                            <div class="upload-icon">📁</div>
+                            <div class="upload-text">
+                                <p>Click to upload or drag and drop</p>
+                                <p class="upload-hint">Excel files (.xlsx, .xls)</p>
+                            </div>
+                        </div>
+                        
+                        <div id="historicalProgress" class="progress-list" style="display: none;">
+                            <h4>Uploaded Historical Data:</h4>
+                            <ul id="historicalList"></ul>
+                        </div>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="instructions">
+                        <h3>Step 2: Upload Current Month Data</h3>
+                        <p>Upload the Excel file for the running month (e.g., January)</p>
+                        
+                        <div class="upload-area" id="currentUploadArea">
+                            <input type="file" id="currentFileInput" accept=".xlsx,.xls" hidden>
+                            <div class="upload-icon">📋</div>
+                            <div class="upload-text">
+                                <p>Click to upload or drag and drop</p>
+                                <p class="upload-hint">Excel files (.xlsx, .xls)</p>
+                            </div>
+                        </div>
+                        
+                        <div id="currentProgress" class="progress-list" style="display: none;">
+                            <h4>Uploaded Current Month Data:</h4>
+                            <ul id="currentList"></ul>
+                        </div>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="target-section">
+                        <h3>Step 3: Set Monthly Target (Optional)</h3>
+                        <div class="target-input-group">
+                            <label for="targetInput">Monthly Sales Target:</label>
+                            <div class="input-group">
+                                <span class="currency">AED</span>
+                                <input type="number" id="targetInput" placeholder="e.g., 3000000" min="0">
+                            </div>
+                            <button id="setTargetBtn" class="btn btn-secondary">Set Target</button>
+                        </div>
+                        <div id="targetStatus" class="status-message" style="display: none;"></div>
+                    </div>
+
+                    <hr class="divider">
+
+                    <div class="action-section">
+                        <button id="viewDashboardBtn" class="btn btn-primary" disabled>
+                            📈 View Dashboard
+                        </button>
+                        <p class="help-text">Upload at least historical data and current month data to proceed</p>
+                    </div>
+                </div>
+
+                <aside class="sidebar">
+                    <div class="card info-card">
+                        <h3>Excel Format</h3>
+                        <p>Your Excel file should follow this structure:</p>
+                        <pre class="format-example">
+ROW 1: Month | MON | TUE | WED | THU | FRI | SAT | SUN
+ROW 2: -     |  1  |  2  |  3  |  4  |  5  |  6  |  7
+ROWS 3+: Branch Names + Daily Sales
+LAST ROW: TOTAL (auto-calculated)
+                        </pre>
+                    </div>
+
+                    <div class="card info-card">
+                        <h3>Features</h3>
+                        <ul class="features-list">
+                            <li>✓ Automatic Excel parsing</li>
+                            <li>✓ Weekday-based forecasting</li>
+                            <li>✓ Professional visualizations</li>
+                            <li>✓ Target-based analysis</li>
+                            <li>✓ KPI dashboards</li>
+                            <li>✓ Enterprise-grade design</li>
+                        </ul>
+                    </div>
+
+                    <div class="card info-card">
+                        <h3>Data Status</h3>
+                        <div class="status-item">
+                            <span>Historical Months:</span>
+                            <strong id="historicalCount">0</strong>
+                        </div>
+                        <div class="status-item">
+                            <span>Current Month:</span>
+                            <strong id="currentStatus">Not Uploaded</strong>
+                        </div>
+                        <div class="status-item">
+                            <span>Target Set:</span>
+                            <strong id="targetStatus2">No</strong>
+                        </div>
+                    </div>
+                </aside>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2026 Champion Cleaners Sales Forecasting | Administration Panel</p>
+                <p class="footer-link"><a href="/viewer" target="_blank" style="color: #667eea; text-decoration: none; font-weight: 600;">→ View Management Dashboard</a></p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        // Global state
+        let uploadState = {
+            historicalCount: 0,
+            historicalMonths: [],
+            currentUploaded: false,
+            currentMonth: null,
+            targetSet: false
+        };
+
+        // Load initial state from backend
+        function loadDataSummary() {
+            fetch('/api/data-summary')
+                .then(response => response.json())
+                .then(data => {
+                    uploadState.historicalMonths = data.historical.map(d => d.month);
+                    uploadState.historicalCount = data.historical.length;
+                    uploadState.currentUploaded = data.current.length > 0;
+                    uploadState.currentMonth = data.current.length > 0 ? data.current[0].month : null;
+                    uploadState.targetSet = Object.keys(data.targets).length > 0;
+                    
+                    // Update UI with backend data
+                    updateHistoricalList(data.historical);
+                    updateCurrentList(data.current);
+                    updateUI();
+                })
+                .catch(error => console.error('Error loading data summary:', error));
+        }
+        
+        function updateHistoricalList(historicalData) {
+            const list = document.getElementById('historicalList');
+            list.innerHTML = '';
+            historicalData.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `✓ ${item.month} (${item.days} days, ${item.branches} branches) <button class="btn-remove" onclick="removeHistorical('${item.month}')">Remove</button>`;
+                list.appendChild(li);
+            });
+            if (historicalData.length > 0) {
+                document.getElementById('historicalProgress').style.display = 'block';
+            }
+        }
+        
+        function updateCurrentList(currentData) {
+            const list = document.getElementById('currentList');
+            list.innerHTML = '';
+            currentData.forEach(item => {
+                const li = document.createElement('li');
+                li.innerHTML = `✓ ${item.month} (${item.days} days, ${item.branches} branches) <button class="btn-remove" onclick="removeCurrent('${item.month}')">Remove</button>`;
+                list.appendChild(li);
+            });
+            if (currentData.length > 0) {
+                document.getElementById('currentProgress').style.display = 'block';
+            }
+        }
+        
+        function removeHistorical(month) {
+            if (confirm(`Remove ${month} from historical data?`)) {
+                fetch('/api/remove-historical', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ month: month })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(`${month} removed successfully`, 'success');
+                        loadDataSummary();
+                    } else {
+                        showNotification(data.error, 'error');
+                    }
+                })
+                .catch(error => showNotification(`Error: ${error.message}`, 'error'));
+            }
+        }
+        
+        function removeCurrent(month) {
+            if (confirm(`Remove ${month} from current month data?`)) {
+                fetch('/api/remove-current', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ month: month })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        showNotification(`${month} removed successfully`, 'success');
+                        loadDataSummary();
+                    } else {
+                        showNotification(data.error, 'error');
+                    }
+                })
+                .catch(error => showNotification(`Error: ${error.message}`, 'error'));
+            }
+        }
+
+        // Setup drag and drop for historical data
+        setupDragDrop('historicalUploadArea', 'historicalFileInput', 'historical');
+        
+        // Setup drag and drop for current month
+        setupDragDrop('currentUploadArea', 'currentFileInput', 'current');
+
+        // Set target button
+        document.getElementById('setTargetBtn').addEventListener('click', setTarget);
+
+        // View dashboard button
+        document.getElementById('viewDashboardBtn').addEventListener('click', () => {
+            window.location.href = '/dashboard';
+        });
+        
+        // Load initial data on page load
+        loadDataSummary();
+
+        function setupDragDrop(areaId, inputId, type) {
+            const uploadArea = document.getElementById(areaId);
+            const fileInput = document.getElementById(inputId);
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('drag-over');
+            });
+
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('drag-over');
+            });
+
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('drag-over');
+                
+                const files = e.dataTransfer.files;
+                for (let file of files) {
+                    uploadFile(file, type);
+                }
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                for (let file of e.target.files) {
+                    uploadFile(file, type);
+                }
+            });
+        }
+
+        function uploadFile(file, type) {
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('month_type', type === 'historical' ? 'historical' : 'current');
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showNotification(data.message, 'success');
+                    // Reload data from backend to keep UI in sync
+                    loadDataSummary();
+                } else {
+                    showNotification(data.error, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification(`Upload failed: ${error.message}`, 'error');
+            });
+        }
+
+        function setTarget() {
+            const targetInput = document.getElementById('targetInput');
+            const target = parseFloat(targetInput.value);
+
+            if (isNaN(target) || target <= 0) {
+                showNotification('Please enter a valid target amount', 'error');
+                return;
+            }
+
+            fetch('/api/set-target', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    month: 'JANUARY',  // Current month
+                    target: target
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    uploadState.targetSet = true;
+                    updateUI();
+                    showNotification(data.message, 'success');
+                } else {
+                    showNotification(data.error, 'error');
+                }
+            })
+            .catch(error => {
+                showNotification(`Error setting target: ${error.message}`, 'error');
+            });
+        }
+
+        function updateUI() {
+            document.getElementById('historicalCount').textContent = uploadState.historicalCount;
+            document.getElementById('currentStatus').textContent = uploadState.currentUploaded ? '✓ Uploaded' : 'Not Uploaded';
+            document.getElementById('targetStatus2').textContent = uploadState.targetSet ? '✓ Yes' : 'No';
+            
+            const canProceed = uploadState.historicalCount >= 2 && uploadState.currentUploaded;
+            document.getElementById('viewDashboardBtn').disabled = !canProceed;
+        }
+
+        function showNotification(message, type) {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            setTimeout(() => {
+                notification.remove();
+            }, 4000);
+        }
+
+        // Initial UI update
+        updateUI();
+    </script>
+</body>
+</html>

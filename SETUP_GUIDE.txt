@@ -1,0 +1,440 @@
+# Sales Forecasting Dashboard - Setup & User Guide
+
+## Quick Start (30 seconds)
+
+1. **Navigate to project folder**
+   ```bash
+   cd "c:\Users\adeel\Sales projection"
+   ```
+
+2. **Double-click `START_APP.bat`** (Windows)
+   - Or run from PowerShell:
+   ```bash
+   .\venv\Scripts\Activate.ps1
+   cd sales_app
+   python app.py
+   ```
+
+3. **Open browser**
+   - Go to: **http://localhost:5000**
+   - You'll see the upload page
+
+---
+
+## Setup Details
+
+### What Was Installed
+
+✅ **Python Packages:**
+- Flask 3.1.2 - Web framework
+- Pandas 2.3.3 - Data processing
+- NumPy 2.4.0 - Numerical computing
+- Plotly 6.5.1 - Interactive charts
+- openpyxl 3.1.5 - Excel file handling
+
+✅ **Project Structure:**
+```
+Sales projection/
+├── venv/                          # Virtual environment (do not edit)
+├── START_APP.bat                  # Quick start script
+├── SETUP_GUIDE.txt               # This file
+└── sales_app/
+    ├── app.py                     # Main Flask application (port 5000)
+    ├── excel_loader.py            # Reads & parses Excel files
+    ├── forecast.py                # Forecasting logic
+    ├── visualizer.py              # Chart generation
+    ├── README.md                  # Technical documentation
+    ├── requirements.txt           # Package list
+    ├── December_Sample.xlsx       # Sample data
+    ├── November_Sample.xlsx       # Sample data
+    ├── January_Sample.xlsx        # Sample data
+    ├── create_sample_excel.py     # Generates sample files
+    ├── static/
+    │   └── css/
+    │       └── style.css          # Professional styling
+    ├── templates/
+    │   ├── index.html             # Upload page
+    │   └── dashboard.html         # Dashboard page
+    └── data/                      # Temporary uploads (auto-cleared)
+```
+
+---
+
+## How to Use the Application
+
+### Step 1: Access Upload Page
+- URL: `http://localhost:5000`
+- You'll see:
+  - **Step 1**: Upload Historical Data
+  - **Step 2**: Upload Current Month Data
+  - **Step 3**: Set Monthly Target (optional)
+  - **Upload samples** on the right sidebar
+
+### Step 2: Prepare Your Excel File
+
+Your file must follow this exact format:
+
+| Column | A | B | C | D | E | F | G | H |
+|--------|---|---|---|---|---|---|---|---|
+| **Row 1** | December | MON | TUE | WED | THU | FRI | SAT | SUN |
+| **Row 2** | (blank) | 1 | 2 | 3 | 4 | 5 | 6 | 7 |
+| **Row 3** | AL BARRARI | 548.71 | 1110.24 | 924.31 | ... | ... | ... | ... |
+| **Row 4** | AL FORSAN | 22.52 | 642.10 | 1831.89 | ... | ... | ... | ... |
+| **...** | ... | ... | ... | ... | ... | ... | ... | ... |
+| **Last** | TOTAL | =SUM(...) | =SUM(...) | ... | ... | ... | ... | ... |
+
+**Key Points:**
+- ✓ 28-30 branches (as needed)
+- ✓ Always 7 columns for weekdays (MON-SUN)
+- ✓ Row 2 has date numbers (1, 2, 3, 4, 5, 6, 7)
+- ✓ Branch names in Column A
+- ✓ Daily sales numbers in data cells
+- ✓ Use dash (-) for zero/no sales
+- ✓ TOTAL row must exist (auto-sum formula)
+
+### Step 3: Upload Historical Data
+
+**Upload at least 2 months of historical data:**
+- November + December (recommended)
+- Or any other 2+ consecutive months
+- System uses these to calculate weekday averages
+
+**To Upload:**
+1. Click the upload area OR drag & drop
+2. Select your Excel file
+3. Wait for upload confirmation (✓ message)
+4. Repeat for all historical months
+
+**Example Upload:**
+```
+1. Upload December_Sample.xlsx
+   → ✓ DECEMBER (7 days, 28 branches)
+
+2. Upload November_Sample.xlsx
+   → ✓ NOVEMBER (7 days, 28 branches)
+
+Status: 2 historical months uploaded ✓
+```
+
+### Step 4: Upload Current Month Data
+
+**Upload the running month:**
+- January (if today is in January)
+- February (if today is in February)
+- Etc.
+
+**To Upload:**
+1. Click the "Current Month" upload area
+2. Select your Excel file
+3. Wait for confirmation
+
+**Important:**
+- System auto-detects what month it is
+- Use current date to match system expectations
+- Once uploaded, dashboard button becomes active
+
+### Step 5: Set Monthly Target (Optional)
+
+**Why:** Shows how close your projection is to goal
+
+**To Set:**
+1. Enter target amount (e.g., 3,000,000)
+2. Click "Set Target"
+3. Dashboard will show gap between projection and target
+
+**Example:**
+- Target: 3,000,000 AED
+- Projection: 2,800,000 AED
+- Gap: -200,000 (200k short)
+
+### Step 6: View Dashboard
+
+Once you have:
+- ✓ 2+ historical months uploaded
+- ✓ Current month uploaded
+- (Optional) Target set
+
+**Click "View Dashboard"**
+
+---
+
+## Dashboard Page Explained
+
+### KPI Cards (Top)
+
+| Card | What It Shows | Example |
+|------|---------------|---------|
+| **Today's Date** | Current date & day | Monday, January 6, 2026 |
+| **Projected Today** | Forecasted sales for today | 145,230 AED |
+| **Monthly Projection** | Total sales for entire month | 2,850,000 AED |
+| **Monthly Target** | Your goal | 3,000,000 AED |
+| **Target Gap** | Difference | -150,000 AED / -5.0% |
+
+### Charts (Below KPI Cards)
+
+**Chart 1: Daily Sales Trend**
+- Shows historical sales from Nov + Dec
+- See which days had highest sales
+- Identify patterns
+
+**Chart 2: Average Sales by Weekday**
+- Monday average: 119,000 AED
+- Tuesday average: 96,500 AED
+- (etc. for all 7 days)
+- Tells you which days are typically strongest
+
+**Chart 3: Sales Projection**
+- Solid line = actual past sales (if any)
+- Diamond marker = today
+- Dashed line = projected future sales
+- Red line = target goal
+
+**Chart 4: Cumulative vs Target**
+- Shows running total through the month
+- Compares to target line
+- If projection line above target line → exceeds goal
+
+---
+
+## Testing with Sample Data
+
+Sample files are pre-created in `sales_app/`:
+
+1. **November_Sample.xlsx** - Historical month (Nov 1-7)
+2. **December_Sample.xlsx** - Historical month (Dec 1-7)
+3. **January_Sample.xlsx** - Current month (Jan 1-7)
+
+**To Test:**
+1. Go to upload page
+2. Upload November_Sample.xlsx (Step 1)
+3. Upload December_Sample.xlsx (Step 1)
+4. Upload January_Sample.xlsx (Step 2)
+5. Set target: 2,500,000
+6. Click "View Dashboard"
+7. See full forecast with charts!
+
+---
+
+## Troubleshooting
+
+### Problem: Browser shows "Cannot reach localhost"
+**Solution:**
+- Make sure Flask app is running (check terminal)
+- Flask should show: `Running on http://127.0.0.1:5000`
+- Try `http://127.0.0.1:5000` instead of `localhost:5000`
+
+### Problem: "Port 5000 already in use"
+**Solution:**
+- Close any other apps using port 5000
+- Or edit `sales_app/app.py` line 93:
+```python
+# Change:
+app.run(debug=True, host='0.0.0.0', port=5000)
+# To:
+app.run(debug=True, host='0.0.0.0', port=5001)
+```
+- Then visit `http://localhost:5001`
+
+### Problem: Upload says "Wrong Excel format"
+**Check:**
+- [ ] File is `.xlsx` or `.xls` format
+- [ ] Row 1 has month name + 7 weekdays
+- [ ] Row 2 has date numbers (1-7)
+- [ ] Column A has branch names
+- [ ] Numeric values in data cells
+- [ ] TOTAL row exists at bottom
+
+### Problem: Dashboard shows "No Data Available"
+**Solution:**
+- Upload at least 2 historical months first
+- Then upload current month
+- Then refresh dashboard page
+
+### Problem: Charts don't load / show blank
+**Solution:**
+1. Refresh page (Ctrl+R or Cmd+R)
+2. Open browser developer tools (F12)
+3. Check Console tab for errors
+4. Close and reopen browser
+
+### Problem: Forecast numbers seem wrong
+**Check:**
+- Historical data has correct dates & sales
+- All 28 branches present
+- No blank cells in critical columns
+- TOTAL row calculates correctly
+
+---
+
+## Understanding the Forecast
+
+### How It Works
+
+1. **Analyzes History**
+   - Looks at Nov, Dec sales data
+   - Groups sales by weekday (all Mondays, all Tuesdays, etc.)
+
+2. **Calculates Averages**
+   - Monday average = (Nov Mon + Dec Mon) / 2
+   - Tuesday average = (Nov Tue + Dec Tue) / 2
+   - (repeat for all 7 days)
+
+3. **Applies Pattern**
+   - January 1 (Monday) = Monday average
+   - January 2 (Tuesday) = Tuesday average
+   - January 8 (Monday) = Monday average again
+   - (repeat throughout month)
+
+### Why This Works
+
+**Assumption:** Sales follow predictable weekly pattern
+- Mondays typically strong
+- Mid-week might be slower
+- Weekends (Fri/Sat/Sun) often peak
+- Pattern repeats each week
+
+**Formula:**
+```
+Projected Sale = Average of same weekday from historical months
+```
+
+### Accuracy
+
+- **Best when:** Consistent weekday patterns
+- **Depends on:** Historical data quality
+- **Improved by:** Using 3+ months of history
+
+---
+
+## Tips for Best Results
+
+1. **Use Current Year Data**
+   - Use Nov/Dec from same year
+   - Seasonal factors matter
+   - Don't mix 2025 with 2024 data
+
+2. **Verify Excel Format**
+   - Use provided sample as template
+   - Follow exactly
+   - Use dash (-) for zero sales
+   - No extra rows or columns
+
+3. **Set Realistic Targets**
+   - Based on historical performance
+   - Accounts for growth/decline
+   - Consider external factors
+
+4. **Monitor Actuals**
+   - Update current month regularly
+   - Track projection vs actual
+   - Adjust next month's target if needed
+
+5. **Archive Old Data**
+   - System supports month closure
+   - Locks past months (read-only)
+   - Uses as training data only
+
+---
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|----------|--------|
+| `Ctrl+R` | Refresh page |
+| `Ctrl+P` | Print dashboard |
+| `F12` | Open developer tools |
+| `Escape` | Close dialogs |
+
+---
+
+## Browser Compatibility
+
+**Supported:**
+- ✓ Chrome 90+
+- ✓ Firefox 88+
+- ✓ Safari 14+
+- ✓ Edge 90+
+
+**Not Recommended:**
+- ✗ Internet Explorer (too old)
+
+**Best Performance:**
+- Chrome or Firefox (latest version)
+
+---
+
+## What's Next?
+
+### Try These:
+1. Upload sample files
+2. View dashboard
+3. Try different targets
+4. Observe how target gap changes
+5. Compare weekday performance
+6. Print dashboard (Ctrl+P)
+
+### Customization:
+- Edit `static/css/style.css` for colors
+- Edit `templates/dashboard.html` for layout
+- Edit `forecast.py` to change algorithm
+
+### Production:
+- Use Gunicorn instead of Flask dev server:
+```bash
+pip install gunicorn
+gunicorn -w 4 -b 0.0.0.0:5000 app:app
+```
+
+---
+
+## Need Help?
+
+1. Check **README.md** for technical details
+2. Review sample Excel files for format
+3. Check browser console (F12) for errors
+4. Verify your Excel file format
+
+---
+
+## System Information
+
+- **Created:** January 2026
+- **Python Version:** 3.8+
+- **Flask Version:** 3.1.2
+- **Database:** In-memory (no persistence)
+- **File Storage:** Temporary (auto-cleared)
+
+---
+
+## Important Notes
+
+⚠️ **Data Storage:**
+- Data is stored in memory only
+- Restarting the app clears all data
+- Upload files again after restart
+- For persistence, add database later
+
+⚠️ **File Uploads:**
+- Max 16MB per file
+- Only Excel formats (.xlsx, .xls)
+- Files stored temporarily then deleted
+
+⚠️ **Security:**
+- No authentication (can be added)
+- Keep on private network
+- Don't expose to public internet
+- Add password protection if needed
+
+---
+
+## Version History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | Jan 2026 | Initial release |
+
+---
+
+**Enjoy your Sales Forecasting Dashboard!** 📊
+
+For more information, see README.md in the sales_app folder.
