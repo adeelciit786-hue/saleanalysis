@@ -10,18 +10,13 @@ import sys
 from pathlib import Path
 import traceback
 
-# Add parent directory to path to import modules
-sys.path.insert(0, str(Path(__file__).parent.parent / 'sales_app'))
-
-try:
-    from excel_loader import ExcelLoader
-    from forecast import SalesForecaster
-    from visualizer import SalesVisualizer
-    from utils import to_float
-except ImportError as e:
-    st.error(f"Import Error: {str(e)}")
-    st.stop()
-
+# Page configuration FIRST
+st.set_page_config(
+    page_title="Management Dashboard - Champion Cleaners",
+    page_icon="📊",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 # Page configuration
 st.set_page_config(
     page_title="Management Dashboard - Champion Cleaners",

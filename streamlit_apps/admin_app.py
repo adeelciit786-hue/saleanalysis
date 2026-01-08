@@ -11,9 +11,18 @@ import os
 from pathlib import Path
 import traceback
 
+# Page configuration MUST be FIRST
+st.set_page_config(
+    page_title="Admin Dashboard - Champion Cleaners",
+    page_icon="🔐", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
 # Add parent directory to path to import modules
 sys.path.insert(0, str(Path(__file__).parent.parent / 'sales_app'))
 
+IMPORTS_OK = True
 try:
     from excel_loader import ExcelLoader
     from forecast import SalesForecaster
@@ -21,15 +30,8 @@ try:
     from utils import to_float
 except ImportError as e:
     st.error(f"Import Error: {str(e)}")
-    st.stop()
-
-# Page configuration
-st.set_page_config(
-    page_title="Admin Dashboard - Champion Cleaners",
-    page_icon="🔐", 
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+    st.warning("Modules will be available once dependencies finish installing")
+    IMPORTS_OK = False
 
 # Custom CSS
 st.markdown("""
@@ -217,6 +219,11 @@ def admin_panel():
     
     # TAB 2: Dashboard
     with tab2:
+        if not IMPORTS_OK:
+            st.warning("⚠️ Modules loading... Please refresh in 30 seconds")
+            st.info("Dependencies are being installed on Streamlit Cloud")
+            return
+        
         if st.session_state.historical_data is None or len(st.session_state.historical_data) == 0:
             st.warning("⚠️ Please upload historical data first in the Upload Data tab")
         else:
