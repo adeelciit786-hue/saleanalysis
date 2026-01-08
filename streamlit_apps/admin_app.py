@@ -28,25 +28,122 @@ try:
     from forecast import SalesForecaster
     from visualizer import SalesVisualizer
     from utils import to_float
+    from shared_storage import save_dashboard_data
 except ImportError as e:
     st.error(f"Import Error: {str(e)}")
     st.warning("Modules will be available once dependencies finish installing")
     IMPORTS_OK = False
 
-# Custom CSS
-st.markdown("""
+# Professional Color Scheme
+PRIMARY_BLUE = "#1E88E5"
+SECONDARY_GREEN = "#43A047"
+ACCENT_RED = "#E53935"
+LIGHT_BG = "#F5F7FA"
+DARK_TEXT = "#1A237E"
+BORDER_COLOR = "#E0E7FF"
+
+# Custom CSS with Professional Styling
+st.markdown(f"""
 <style>
-    .main {
+    :root {{
+        --primary-blue: {PRIMARY_BLUE};
+        --secondary-green: {SECONDARY_GREEN};
+        --accent-red: {ACCENT_RED};
+        --light-bg: {LIGHT_BG};
+        --dark-text: {DARK_TEXT};
+    }}
+    
+    .main {{
         padding: 2rem;
-    }
-    .stTabs [data-baseweb="tab-list"] {
+        background: linear-gradient(135deg, {LIGHT_BG} 0%, #FFFFFF 100%);
+    }}
+    
+    .stTabs [data-baseweb="tab-list"] {{
         gap: 2rem;
-    }
-    .login-container {
+        border-bottom: 3px solid {PRIMARY_BLUE};
+    }}
+    
+    .stTabs [data-baseweb="tab"] {{
+        color: {DARK_TEXT};
+        font-weight: 600;
+    }}
+    
+    .login-container {{
         max-width: 400px;
         margin: auto;
         padding: 2rem;
-    }
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(30, 136, 229, 0.1);
+        border: 2px solid {PRIMARY_BLUE};
+    }}
+    
+    .header-title {{
+        background: linear-gradient(135deg, {PRIMARY_BLUE} 0%, #1565C0 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+    }}
+    
+    .stMetric {{
+        background: white;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border-left: 4px solid {PRIMARY_BLUE};
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }}
+    
+    .metric-positive {{
+        border-left-color: {SECONDARY_GREEN};
+    }}
+    
+    .metric-negative {{
+        border-left-color: {ACCENT_RED};
+    }}
+    
+    .stButton>button {{
+        background: linear-gradient(135deg, {PRIMARY_BLUE} 0%, #1565C0 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        transition: all 0.3s ease;
+    }}
+    
+    .stButton>button:hover {{
+        box-shadow: 0 4px 16px rgba(30, 136, 229, 0.4);
+        transform: translateY(-2px);
+    }}
+    
+    .stSuccess {{
+        background: linear-gradient(135deg, rgba(67, 160, 71, 0.1), rgba(67, 160, 71, 0.05));
+        border-left: 4px solid {SECONDARY_GREEN};
+        border-radius: 8px;
+    }}
+    
+    .stWarning {{
+        background: linear-gradient(135deg, rgba(229, 57, 53, 0.1), rgba(229, 57, 53, 0.05));
+        border-left: 4px solid {ACCENT_RED};
+        border-radius: 8px;
+    }}
+    
+    .stInfo {{
+        background: linear-gradient(135deg, rgba(30, 136, 229, 0.1), rgba(30, 136, 229, 0.05));
+        border-left: 4px solid {PRIMARY_BLUE};
+        border-radius: 8px;
+    }}
+    
+    h1, h2, h3 {{
+        color: {DARK_TEXT};
+        font-weight: 700;
+    }}
+    
+    .divider {{
+        border-bottom: 2px solid {PRIMARY_BLUE};
+        margin: 2rem 0;
+    }}
 </style>
 """, unsafe_allow_html=True)
 
@@ -169,6 +266,8 @@ def admin_panel():
                                     'branches': loader.branches
                                 }
                                 st.session_state.historical_data = [data_dict]
+                                # Save to shared storage
+                                save_dashboard_data(st.session_state.historical_data, st.session_state.current_month_data, st.session_state.target_sales)
                                 st.success(f"✅ Loaded {file.name}")
                             else:
                                 st.error(f"❌ Failed to load {file.name}")
@@ -207,6 +306,8 @@ def admin_panel():
                                 'branches': loader.branches
                             }
                             st.session_state.current_month_data = [data_dict]
+                            # Save to shared storage
+                            save_dashboard_data(st.session_state.historical_data, st.session_state.current_month_data, st.session_state.target_sales)
                             st.success(f"✅ Loaded {current_file.name}")
                         else:
                             st.error(f"❌ Failed to load {current_file.name}")
@@ -231,6 +332,8 @@ def admin_panel():
         
         if target > 0:
             st.session_state.target_sales = target
+            # Save to shared storage
+            save_dashboard_data(st.session_state.historical_data, st.session_state.current_month_data, st.session_state.target_sales)
             st.success(f"✅ Target set: AED {target:,.0f}")
     
     # TAB 2: Dashboard
